@@ -1,0 +1,17 @@
+Your Personalized Workout Plan
+
+Push Day:
+  - Bench Press - 3 sets of 10-12 reps
+  - Overhead Press - 3 sets of 10-12 reps
+  - Triceps Dips - 3 sets of 10-12 reps
+
+Pull Day:
+  - Deadlift - 3 sets of 10-12 reps
+  - Pull-Ups - 3 sets of 10-12 reps
+  - Barbell Rows - 3 sets of 10-12 reps
+
+Leg Day:
+  - Squats - 3 sets of 10-12 reps
+  - Leg Press - 3 sets of 10-12 reps
+  - Calf Raises - 3 sets of 10-12 reps
+
