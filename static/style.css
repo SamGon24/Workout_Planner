@@ -1,0 +1,97 @@
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    margin-top: 30px;
+}
+
+h1 {
+    color: #2c3e50;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+select, input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.radio-option {
+    margin-bottom: 5px;
+}
+
+button, .btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    display: inline-block;
+    text-decoration: none;
+    margin-top: 10px;
+}
+
+button:hover, .btn:hover {
+    background-color: #2980b9;
+}
+
+.error {
+    color: #e74c3c;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #fadbd8;
+    border-radius: 4px;
+}
+
+.plan-info {
+    background-color: #eaf2f8;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.workout-day {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.workout-day h2 {
+    margin-top: 0;
+    color: #16a085;
+}
+
+.workout-day ul {
+    padding-left: 20px;
+}
+
+.workout-day li {
+    margin-bottom: 5px;
+}

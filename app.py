@@ -1,7 +1,10 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, session, redirect, url_for, send_file
+import io
 
 app = Flask(__name__)
 
+app.secret_key = '8401c7344c4a9963e10ea612fd8336d47370975976a116d0a727819dc9504e4a'
+# Helper functions from original code
 def get_male_routines():
     return {
         "Push Pull Legs": {
@@ -46,49 +49,74 @@ def get_sets_and_reps(level):
     }
     return levels.get(level, "3 sets of 10 reps")
 
-@app.route('/', methods=['GET', 'POST'])
+# Flask routes
+@app.route('/')
 def index():
-    if request.method == 'POST':
-        gender = request.form.get('gender')
-        level = request.form.get('level')
-        
-        if gender not in ['Male', 'Female']:
-            return render_template('index.html', error="Invalid gender selection")
-        
-        routines = get_male_routines() if gender == 'Male' else get_female_routines()
-        routine_names = list(routines.keys())
-        
-        return render_template('index.html', 
-                             gender=gender,
-                             level=level,
-                             routine_names=routine_names,
-                             show_routines=True)
-    
     return render_template('index.html')
-
-@app.route('/generate', methods=['POST'])
-def generate():
-    gender = request.form.get('gender')
-    level = request.form.get('level')
+# Comment: Here we trace a route to index.html, which is the layout portion for our page
+@app.route('/start', methods=['POST'])
+def start():
+    session['gender'] = request.form.get('gender')
+    session['level'] = request.form.get('level')
+    return redirect(url_for('select_split'))
+# While being in index.html, we store the user´s decisions in that specific session
+@app.route('/select_split')
+def select_split():
+    gender = session.get('gender')
+    if gender == 'Male':
+        routines = get_male_routines()
+    elif gender == 'Female':
+        routines = get_female_routines()
+    else:
+        return redirect(url_for('index'))
+    
+    return render_template('select_split.html', routines=routines.keys())
+# While being in select_split.html, we store the user´s decisions in that specific session and
+# drop it to select_split.html
+@app.route('/generate_plan', methods=['POST'])
+def generate_plan():
     routine_name = request.form.get('routine')
+    session['routine'] = routine_name
+    
+    gender = session.get('gender')
+    level = session.get('level')
     
     if gender == 'Male':
         routines = get_male_routines()
     else:
         routines = get_female_routines()
     
-    workout_plan = routines.get(routine_name, {})
-    sets_and_reps = get_sets_and_reps(level)
+    workout_plan = routines[routine_name]
+    sets_reps = get_sets_and_reps(level)
     
     final_plan = {}
     for day, exercises in workout_plan.items():
-        final_plan[day] = [f"{exercise} - {sets_and_reps}" for exercise in exercises]
+        final_plan[day] = [f"{exercise} - {sets_reps}" for exercise in exercises]
     
-    return render_template('plan.html', 
-                         plan=final_plan,
-                         gender=gender,
-                         level=level,
-                         routine_name=routine_name)
+    session['final_plan'] = final_plan
+    return render_template('plan.html', plan=final_plan)
+# While being in select_split.html we store the user´s decisions in that specific session and
+# drop it to plan.html, also making sure that the user has the possibility of saving their workout plan as a .txt
+@app.route('/download')
+def download():
+    final_plan = session.get('final_plan', {})
+    content = "Your Personalized Workout Plan\n\n"
+    for day, exercises in final_plan.items():
+        content += f"{day}:\n"
+        for ex in exercises:
+            content += f"  - {ex}\n"
+        content += "\n"
+    
+    buffer = io.BytesIO()
+    buffer.write(content.encode('utf-8'))
+    buffer.seek(0)
+    
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name='workout_plan.txt',
+        mimetype='text/plain'
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)
