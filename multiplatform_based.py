@@ -1,3 +1,10 @@
+from flask import Flask, render_template, request, session, redirect, url_for, send_file, jsonify, session
+import io
+
+app = Flask(__name__)
+
+app.secret_key = '8401c7344c4a9963e10ea612fd8336d47370975976a116d0a727819dc9504e4a'
+# Helper functions from original code
 def get_male_routines():
     return {
         "Push Pull Legs": {
@@ -42,45 +49,55 @@ def get_sets_and_reps(level):
     }
     return levels.get(level, "3 sets of 10 reps")
 
-def save_to_file(workout_plan):
-    with open("workout_plan.txt", "w") as file:
-        file.write("Your Personalized Workout Plan\n\n")
-        for day, exercises in workout_plan.items():
-            file.write(f"{day}:\n")
-            for exercise in exercises:
-                file.write(f"  - {exercise}\n")
-            file.write("\n")
-    print("Workout plan saved to workout_plan.txt!")
+@app.route('/api/start', methods=['POST'])
+def api_start():
+    session['gender'] = request.json.get('gender')
+    session['level'] = request.json.get('level')
+    return jsonify({"message": "Session started", "gender": session['gender'], "level": session['level']})
 
-def main():
-    gender = input("Enter your gender (Male/Female): ").strip().capitalize()
-    level = input("Enter your gym experience level (Beginner/Intermediate/Advanced): ").strip().capitalize()
-    
-    if gender == "Male":
+@app.route('/api/select_split', methods=['GET'])
+def api_select_split():
+    gender = session.get('gender')
+    if gender == 'Male':
         routines = get_male_routines()
-    elif gender == "Female":
+    elif gender == 'Female':
         routines = get_female_routines()
     else:
-        print("Invalid gender input.")
-        return
+        return jsonify({"error": "Invalid gender"}), 400
     
-    print("\nAvailable Workout Splits:")
-    for idx, routine in enumerate(routines.keys(), start=1):
-        print(f"{idx}. {routine}")
+    return jsonify({"routines": list(routines.keys())})
+
+@app.route('/api/generate_plan', methods=['POST'])
+def api_generate_plan():
+    routine_name = request.json.get('routine')
+    session['routine'] = routine_name
+
+    gender = session.get('gender')
+    level = session.get('level')
     
-    choice = int(input("Select your workout split (Enter number): "))
-    routine_name = list(routines.keys())[choice - 1]
+    if gender == 'Male':
+        routines = get_male_routines()
+    else:
+        routines = get_female_routines()
+    
     workout_plan = routines[routine_name]
-    
-    sets_and_reps = get_sets_and_reps(level)
+    sets_reps = get_sets_and_reps(level)
     
     final_plan = {}
     for day, exercises in workout_plan.items():
-        final_plan[day] = [f"{exercise} - {sets_and_reps}" for exercise in exercises]
+        final_plan[day] = [f"{exercise} - {sets_reps}" for exercise in exercises]
     
-    save_to_file(final_plan)
-    print("Workout routine generated successfully!")
+    session['final_plan'] = final_plan
+    return jsonify({"plan": final_plan})
 
-if __name__ == "__main__":
-    main()
-
+@app.route('/api/download', methods=['GET'])
+def api_download():
+    final_plan = session.get('final_plan', {})
+    content = "Your Personalized Workout Plan\n\n"
+    for day, exercises in final_plan.items():
+        content += f"{day}:\n"
+        for ex in exercises:
+            content += f"  - {ex}\n"
+        content += "\n"
+    
+    return jsonify({"workout_plan": content})
